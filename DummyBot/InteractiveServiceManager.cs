@@ -27,7 +27,7 @@ namespace DummyBot
 
                 foreach (ModuleInfo module in Interactions.Modules)
                 {
-                    Console.WriteLine($"\u001b[97m[{DateTime.Now}]: [\u001b[93mMODULES\u001b[97m] => {module.Name} \u001b[92mInitialized");
+                    Console.WriteLine($"\u001b[97m[{DateTime.Now}]: [\u001b[93mMODULES\u001b[97m] => {module.Name} \u001b[92mInitialized\u001b[97m");
                     Interactions.Log += InteractionServiceLog;
                 }
             }

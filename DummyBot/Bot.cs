@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Discord.Interactions;
 using Microsoft.Extensions.DependencyInjection;
+using Fergun.Interactive;
 
 namespace DummyBot
 {
@@ -56,6 +57,7 @@ namespace DummyBot
         {
             return new ServiceCollection()
                 .AddSingleton(Client)
+                .AddSingleton<InteractiveService>()
                 .AddSingleton(Interactions)
                 .BuildServiceProvider();
         }
