@@ -189,7 +189,23 @@ namespace DummyBot.Core.SlashCommands
         {
             try
             {
-
+                await DeferAsync();
+                if(!utils.CheckSquadName(SquadName))
+                {
+                    await FollowupAsync("That squad name does not exist");
+                    return;
+                }
+                if(!await db.HasSquadAsync(SquadName))
+                {
+                    var data = utils.SquadStatsData(SquadName);
+                    await db.CreateSquadAsync(data);
+                }
+                var squadData = await db.GetSquadByNameAsync(SquadName);
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Viewing Squad Stats: {SquadName}")
+                    .AddField("Overall Squad Wins", $"```css\nDeath Match: {squadData.DeathMatch}\nBattle Royale: {squadData.BattleRoyale}\nMissile Launch: {squadData.MissileLaunch}\nPackage Drop: {squadData.PackageDrop}\nVehicle Escort: {squadData.VehicleEscort}\nZombie Battle Royale: {squadData.ZombieBR}\nCapture Point: {squadData.CapturePoint}```")
+                    .WithColor(Color.Green);
+                await FollowupAsync(embed: embed.Build());
             }
             catch (Exception ex)
             {

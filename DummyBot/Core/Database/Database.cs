@@ -1,4 +1,5 @@
 ﻿using System.Data.SQLite;
+using Newtonsoft.Json.Linq;
 
 namespace DummyBot.Core.Database
 {
@@ -20,6 +21,18 @@ namespace DummyBot.Core.Database
         public string HeadShots { get; set; }
 
     }
+    public struct Squad
+    {
+        public string Name { get; set; }
+        public string DeathMatch { get; set; }
+        public string BattleRoyale { get; set; }
+        public string MissileLaunch { get; set; }
+        public string PackageDrop { get; set; }
+        public string VehicleEscort { get; set; }
+        public string ZombieBR { get; set; }
+        public string CapturePoint { get; set; }
+        public JObject Members { get; set; }
+    }
     public class Database
     {
         SQLiteDBContext db = new SQLiteDBContext();
@@ -32,43 +45,11 @@ namespace DummyBot.Core.Database
         private async Task CreateTable()
         {
             string query = "CREATE TABLE IF NOT EXISTS Users (ID varchar(18), IsSteam boolean, WBID string, WBName string, Level string, Kills string, Deaths string, XP string, KD string, KPM string, WeaponKills string, VehicleKills string, DamageDealt string, HeadShots string)";
-            string query2 = "CREATE TABLE IF NOT EXISTS Squads (Name string, DeathMatch string, BattleRoyale string, MissileLaunch string, PackageDrop string, VehicleEscort string, ZombieBR string, CapturePoint string, " +
-                "Member1 string, " +
-                "Member2 string, " +
-                "Member3 string, " +
-                "Member4 string, " +
-                "Member5 string, " +
-                "Member6 string, " +
-                "Member7 string, " +
-                "Member8 string, " +
-                "Member9 string, " +
-                "Member10 string, " +
-                "Member11 string, " +
-                "Member12 string, " +
-                "Member13 string, " +
-                "Member14 string, " +
-                "Member15 string, " +
-                "Member16 string, " +
-                "Member17 string, " +
-                "Member18 string, " +
-                "Member19 string, " +
-                "Member20 string, " +
-                "Member21 string, " +
-                "Member22 string, " +
-                "Member23 string, " +
-                "Member24 string, " +
-                "Member25 string, " +
-                "Member26 string, " +
-                "Member27 string, " +
-                "Member28 string, " +
-                "Member29 string, " +
-                "Member30 string, " +
-                "Member31 string, " +
-                "Member32 string)";
+            string query2 = "CREATE TABLE IF NOT EXISTS Squads (Name string, DeathMatch string, BattleRoyale string, MissileLaunch string, PackageDrop string, VehicleEscort string, ZombieBR string, CapturePoint string, Members string)";
             SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
             SQLiteCommand cmd2 = new SQLiteCommand(query2, db.MyConnection);
             cmd.Prepare();
-            cmd2.Prepare(); 
+            cmd2.Prepare();
             db.OpenConnection();
             cmd.ExecuteNonQuery();
             cmd2.ExecuteNonQuery();
@@ -162,6 +143,75 @@ namespace DummyBot.Core.Database
             cmd.ExecuteNonQuery();
             db.CloseConnection();
             await cmd.DisposeAsync();
+        }
+
+        public async Task CreateSquadAsync(Squad squad)
+        {
+            string query = "INSERT INTO Squads (Name, DeathMatch, BattleRoyale, MissileLaunch, PackageDrop, VehicleEscort, ZombieBR, CapturePoint, Members) VALUES (@Name, @DeathMatch, @BattleRoyale, @MissileLaunch, @PackageDrop, @VehicleEscort, @ZombieBR, @CapturePoint, @Members)";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Parameters.AddWithValue("@Name", squad.Name);
+            cmd.Parameters.AddWithValue("@DeathMatch", squad.DeathMatch);
+            cmd.Parameters.AddWithValue("@BattleRoyale", squad.BattleRoyale);
+            cmd.Parameters.AddWithValue("@MissileLaunch", squad.MissileLaunch);
+            cmd.Parameters.AddWithValue("@PackageDrop", squad.PackageDrop);
+            cmd.Parameters.AddWithValue("@VehicleEscort", squad.VehicleEscort);
+            cmd.Parameters.AddWithValue("@ZombieBR", squad.ZombieBR);
+            cmd.Parameters.AddWithValue("@CapturePoint", squad.CapturePoint);
+            cmd.Parameters.AddWithValue("@Members", squad.Members.ToString().Replace(" ", "").Replace(@"\n", ""));
+            cmd.Prepare();
+            db.OpenConnection();
+            cmd.ExecuteNonQuery();
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+        }
+        public async Task<bool> HasSquadAsync(string name)
+        {
+            string query = $"SELECT * FROM Squads WHERE Name = \"{name}\"";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            SQLiteDataReader result = cmd.ExecuteReader();
+            bool hasActivity = false;
+            if (result.HasRows) hasActivity = true;
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+            await result.DisposeAsync();
+            return hasActivity;
+        }
+        public async Task UpdateSquadAsync(Squad squad)
+        {
+            string query = $"UPDATE Users SET DeathMatch = \"{squad.DeathMatch}\", BattleRoyale = \"{squad.BattleRoyale}\", MissileLaunch = \"{squad.MissileLaunch}\", PackageDrop = \"{squad.PackageDrop}\", VehicleEscort = \"{squad.VehicleEscort}\", ZombieBR = \"{squad.ZombieBR}\", CapturePoint = \"{squad.CapturePoint}\", Members = \"{squad.Members}\" WHERE Name = \"{squad.Name}\"";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            cmd.ExecuteNonQuery();
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+        }
+        public async Task<Squad> GetSquadByNameAsync(string name)
+        {
+            string query = $"SELECT * FROM Squads WHERE Name = \"{name}\"";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            SQLiteDataReader result = cmd.ExecuteReader();
+            Squad squad = new Squad();
+            if (result.HasRows) while (result.Read())
+                {
+                    squad.Name = name;
+                    squad.DeathMatch = result["DeathMatch"].ToString();
+                    squad.BattleRoyale = result["BattleRoyale"].ToString();
+                    squad.MissileLaunch = result["MissileLaunch"].ToString();
+                    squad.PackageDrop = result["PackageDrop"].ToString();
+                    squad.VehicleEscort = result["VehicleEscort"].ToString();
+                    squad.ZombieBR = result["ZombieBR"].ToString();
+                    squad.CapturePoint = result["CapturePoint"].ToString();
+                    squad.Members = JObject.Parse(result["Members"].ToString());
+                }
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+            await result.DisposeAsync();
+            return squad;
         }
     }
 }

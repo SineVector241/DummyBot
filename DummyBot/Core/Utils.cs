@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using Discord;
 using HtmlAgilityPack;
 using Discord.WebSocket;
+using Newtonsoft.Json.Linq;
 
 namespace DummyBot.Core
 {
@@ -125,6 +126,49 @@ namespace DummyBot.Core
             {
                 return new Database.User();
             }
+        }
+
+        public Database.Squad SquadStatsData(string squadname)
+        {
+            HtmlDocument document = new HtmlDocument();
+            document.LoadHtml(GetRequest($"https://stats.warbrokers.io/squads/{squadname}"));
+            var TopTenData = document.DocumentNode.SelectSingleNode("//div[@class='squad-top-ten-weapons-grid']");
+            var SquadMembers = document.DocumentNode.SelectNodes("//div[@class='squad-player-grid']");
+            JObject json = new JObject();
+            foreach(var SquadMember in SquadMembers)
+            {
+                json[SquadMember.ChildNodes[1].InnerText] = new JObject();
+                json[SquadMember.ChildNodes[1].InnerText]["Level"] = SquadMember.ChildNodes[5].ChildNodes[1].ChildNodes[3].InnerText;
+                json[SquadMember.ChildNodes[1].InnerText]["XP"] = SquadMember.ChildNodes[5].ChildNodes[11].ChildNodes[3].InnerText;
+                json[SquadMember.ChildNodes[1].InnerText]["ClassicWins"] = SquadMember.ChildNodes[5].ChildNodes[15].ChildNodes[3].InnerText;
+            }
+            var Squad = new Database.Squad()
+            {
+                Name = squadname,
+                DeathMatch = TopTenData.ChildNodes[1].ChildNodes[3].InnerText,
+                BattleRoyale = TopTenData.ChildNodes[3].ChildNodes[3].InnerText,
+                MissileLaunch = TopTenData.ChildNodes[5].ChildNodes[3].InnerText,
+                PackageDrop = TopTenData.ChildNodes[7].ChildNodes[3].InnerText,
+                VehicleEscort = TopTenData.ChildNodes[9].ChildNodes[3].InnerText,
+                ZombieBR = TopTenData.ChildNodes[11].ChildNodes[3].InnerText,
+                CapturePoint = TopTenData.ChildNodes[13].ChildNodes[3].InnerText,
+                Members = json
+            };
+            return Squad;
+        }
+        public bool CheckSquadName(string name)
+        {
+            HtmlDocument document = new HtmlDocument();
+            document.LoadHtml(GetRequest($"https://stats.warbrokers.io"));
+            var squads = document.DocumentNode.SelectNodes("//a[@class='squadLink']");
+            string list = "";
+            foreach(var squadname in squads)
+            {
+                list += $"|{squadname.InnerText}";
+            }
+            if(list.Contains(name))
+                return true;
+            return false;
         }
         public CooldownResponse Cooldown(SocketUser user, string type, int Seconds = 0)
         {
