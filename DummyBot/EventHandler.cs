@@ -46,7 +46,11 @@ namespace DummyBot
                 Console.WriteLine($"\u001b[97m[{DateTime.Now}]: [\u001b[92mREADY\u001b[97m] => {Client.CurrentUser.Username} is ready!");
                 await Client.SetGameAsync("/help");
                 await Client.SetStatusAsync(UserStatus.Online);
+#if DEBUG
                 await Interactions.RegisterCommandsToGuildAsync(797094263568465970);
+#else
+                await Interactions.RegisterCommandsGloballyAsync();
+#endif
             }
             catch (Exception ex)
             {

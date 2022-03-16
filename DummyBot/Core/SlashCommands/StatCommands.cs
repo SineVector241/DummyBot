@@ -19,7 +19,8 @@ namespace DummyBot.Core.SlashCommands
         public InteractiveService Interactive { get; set; }
 
         [SlashCommand("searchplayer", "Searches for a warbokers player by name")]
-        public async Task SearchPlayer([Summary(description:"The player name")] string player)
+        [RequireContext(ContextType.Guild)]
+        public async Task SearchPlayer([Summary(description: "The player name")] string player)
         {
             try
             {
@@ -44,10 +45,10 @@ namespace DummyBot.Core.SlashCommands
                 foreach (JArray value in Data["players"])
                 {
                     counter++;
-                    if(counter<=5)
+                    if (counter <= 5)
                     {
                         embed.AddField($"{counter}: {value[0]}", $"ID: {value[1]}");
-                        builder.WithButton(counter.ToString(),$"PlayerSearch:{value[1]}");
+                        builder.WithButton(counter.ToString(), $"PlayerSearch:{value[1]}");
                     }
                     else
                     {
@@ -68,13 +69,14 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("me", "Shows your stats")]
+        [RequireContext(ContextType.Guild)]
         public async Task MyStats()
         {
             try
             {
                 await DeferAsync();
                 var hasStats = await db.HasProfileAsync(Context.User.Id);
-                if(!hasStats)
+                if (!hasStats)
                 {
                     await FollowupAsync("You do not have your stats account linked. Please link an account using your WarBrokers ID by doing the following command\n**/stats link <WB ID>** Without the <>");
                     return;
@@ -89,7 +91,7 @@ namespace DummyBot.Core.SlashCommands
                 }
                 await FollowupAsync(embed: data.Build(), components: builder.Build());
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Console.WriteLine(ex);
                 var embed = new EmbedBuilder()
@@ -101,6 +103,7 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("link", "Links your stat account")]
+        [RequireContext(ContextType.Guild)]
         public async Task LinkStats(string WarBrokersID)
         {
             try
@@ -127,13 +130,13 @@ namespace DummyBot.Core.SlashCommands
                     .WithColor(Color.LightOrange);
                 var msg = await FollowupAsync(embed: embed.Build(), components: builder.Build());
                 var choice = await Interactive.NextMessageComponentAsync(x => x.Message.Id == msg.Id && x.User.Id == Context.User.Id, timeout: TimeSpan.FromSeconds(10));
-                if(choice.IsTimeout)
+                if (choice.IsTimeout)
                 {
                     await msg.ModifyAsync(x => { x.Content = "Timed out. Canceled linking..."; x.Components = new ComponentBuilder().Build(); });
                     return;
                 }
                 bool hasProfile = await db.HasProfileAsync(Context.User.Id);
-                if(hasProfile)
+                if (hasProfile)
                 {
                     await db.UpdateUserAsync(data);
                 }
@@ -156,6 +159,7 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("user", "Displays another discord users WB stats if linked")]
+        [RequireContext(ContextType.Guild)]
         public async Task UserStats(SocketUser user)
         {
             try
@@ -185,27 +189,43 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("squad", "Displays squad stats")]
+        [RequireContext(ContextType.Guild)]
         public async Task SquadStats(string SquadName)
         {
             try
             {
                 await DeferAsync();
-                if(!utils.CheckSquadName(SquadName))
+                if (!await db.HasSquadAsync(SquadName))
                 {
-                    await FollowupAsync("That squad name does not exist");
-                    return;
+                    if (!utils.CheckSquadName(SquadName))
+                    {
+                        await FollowupAsync("That squad name does not exist");
+                        return;
+                    }
                 }
-                if(!await db.HasSquadAsync(SquadName))
+                if (!await db.HasSquadAsync(SquadName))
                 {
                     var data = utils.SquadStatsData(SquadName);
                     await db.CreateSquadAsync(data);
                 }
                 var squadData = await db.GetSquadByNameAsync(SquadName);
+                if(squadData.LastUpdate.AddDays(1) <= DateTime.Now)
+                {
+                    var data = utils.SquadStatsData(SquadName);
+                    await db.UpdateSquadAsync(data);
+                }
+                var builder = new ComponentBuilder()
+                    .WithButton("Home", $"SquadHome:{Context.User.Id}:{SquadName}")
+                    .WithButton("Squad Stats", style: ButtonStyle.Link, url: $"https://stats.warbrokers.io/squads/{SquadName}", row: 1);
+                for (int i = 0; i <= MathF.Abs(squadData.Members.Count / 8); i++)
+                {
+                    builder.WithButton($"Members {i + 1}", $"Members{i + 1}:{Context.User.Id}:{SquadName}");
+                }
                 var embed = new EmbedBuilder()
                     .WithTitle($"Viewing Squad Stats: {SquadName}")
                     .AddField("Overall Squad Wins", $"```css\nDeath Match: {squadData.DeathMatch}\nBattle Royale: {squadData.BattleRoyale}\nMissile Launch: {squadData.MissileLaunch}\nPackage Drop: {squadData.PackageDrop}\nVehicle Escort: {squadData.VehicleEscort}\nZombie Battle Royale: {squadData.ZombieBR}\nCapture Point: {squadData.CapturePoint}```")
                     .WithColor(Color.Green);
-                await FollowupAsync(embed: embed.Build());
+                await FollowupAsync(embed: embed.Build(), components: builder.Build());
             }
             catch (Exception ex)
             {

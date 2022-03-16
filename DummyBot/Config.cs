@@ -6,6 +6,9 @@ namespace DummyBot
     {
         private const string _configFolder = "Resources";
         private const string _configFile = "config.json";
+        private const string _MapPicturesFolder = "Resources/MapPictures";
+        private const string _AmmoPicturesFolder = "Resources/AmmunitionPictures";
+        private const string _VehiclePicturesFolder = "Resources/VehiclePictures";
         public static BotConfig BotConfiguration;
 
         static Config()
@@ -16,6 +19,23 @@ namespace DummyBot
                 {
                     Directory.CreateDirectory(_configFolder);
                 }
+
+                if(!Directory.Exists(_MapPicturesFolder))
+                {
+                    Directory.CreateDirectory(_MapPicturesFolder);
+                }
+
+                if(!Directory.Exists(_AmmoPicturesFolder))
+                {
+                    Directory.CreateDirectory(_AmmoPicturesFolder);
+                }
+
+                if(!Directory.Exists(_VehiclePicturesFolder))
+                {
+                    Directory.CreateDirectory(_VehiclePicturesFolder);
+                }
+
+
 
                 if (!File.Exists(_configFolder + "/" + _configFile))
                 {

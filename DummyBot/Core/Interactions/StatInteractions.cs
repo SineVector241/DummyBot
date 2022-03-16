@@ -67,5 +67,199 @@ namespace DummyBot.Core.Interactions
                 await FollowupAsync(embed: embed.Build());
             }
         }
+
+        [ComponentInteraction("Members1:*:*")]
+        public async Task ViewMembers1(string userID, string SquadName)
+        {
+            try
+            {
+                await DeferAsync();
+                if(userID != Context.User.Id.ToString())
+                {
+                    await FollowupAsync("This is not your page to interact with!", ephemeral: true);
+                    return;
+                }
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Viewing Squad Stats: {SquadName}")
+                    .WithColor(Color.Green);
+                var SquadData = await db.GetSquadByNameAsync(SquadName);
+                int counter = 0;
+                foreach(var member in SquadData.Members)
+                {
+                    counter++;
+                    string level = member.Value["Level"].ToString();
+                    string XP = member.Value["XP"].ToString();
+                    string ClassicWins = member.Value["ClassicWins"].ToString();
+                    embed.AddField(member.Key, $"```css\nLevel: {level}\nExperience: {XP}\nClassic Wins: {ClassicWins}```");
+                    if (counter >= 8)
+                        break;
+                }
+                await ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription(ex.Message)
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
+
+        [ComponentInteraction("Members2:*:*")]
+        public async Task ViewMembers2(string userID, string SquadName)
+        {
+            try
+            {
+                await DeferAsync();
+                if (userID != Context.User.Id.ToString())
+                {
+                    await FollowupAsync("This is not your page to interact with!", ephemeral: true);
+                    return;
+                }
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Viewing Squad Stats: {SquadName}")
+                    .WithColor(Color.Green);
+                var SquadData = await db.GetSquadByNameAsync(SquadName);
+                int counter = 0;
+                foreach (var member in SquadData.Members)
+                {
+                    counter++;
+                    if (counter >= 9)
+                    {
+                        string level = member.Value["Level"].ToString();
+                        string XP = member.Value["XP"].ToString();
+                        string ClassicWins = member.Value["ClassicWins"].ToString();
+                        embed.AddField(member.Key, $"```css\nLevel: {level}\nExperience: {XP}\nClassic Wins: {ClassicWins}```");
+                    }
+                    if (counter >= 16)
+                        break;
+                }
+                await ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription(ex.Message)
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
+
+        [ComponentInteraction("Members3:*:*")]
+        public async Task ViewMembers3(string userID, string SquadName)
+        {
+            try
+            {
+                await DeferAsync();
+                if (userID != Context.User.Id.ToString())
+                {
+                    await FollowupAsync("This is not your page to interact with!", ephemeral: true);
+                    return;
+                }
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Viewing Squad Stats: {SquadName}")
+                    .WithColor(Color.Green);
+                var SquadData = await db.GetSquadByNameAsync(SquadName);
+                int counter = 0;
+                foreach (var member in SquadData.Members)
+                {
+                    counter++;
+                    if (counter >= 17)
+                    {
+                        string level = member.Value["Level"].ToString();
+                        string XP = member.Value["XP"].ToString();
+                        string ClassicWins = member.Value["ClassicWins"].ToString();
+                        embed.AddField(member.Key, $"```css\nLevel: {level}\nExperience: {XP}\nClassic Wins: {ClassicWins}```");
+                    }
+                    if (counter >= 24)
+                        break;
+                }
+                await ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription(ex.Message)
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
+
+        [ComponentInteraction("Members4:*:*")]
+        public async Task ViewMembers4(string userID, string SquadName)
+        {
+            try
+            {
+                await DeferAsync();
+                if (userID != Context.User.Id.ToString())
+                {
+                    await FollowupAsync("This is not your page to interact with!", ephemeral: true);
+                    return;
+                }
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Viewing Squad Stats: {SquadName}")
+                    .WithColor(Color.Green);
+                var SquadData = await db.GetSquadByNameAsync(SquadName);
+                int counter = 0;
+                foreach (var member in SquadData.Members)
+                {
+                    counter++;
+                    if (counter >= 25)
+                    {
+                        string level = member.Value["Level"].ToString();
+                        string XP = member.Value["XP"].ToString();
+                        string ClassicWins = member.Value["ClassicWins"].ToString();
+                        embed.AddField(member.Key, $"```css\nLevel: {level}\nExperience: {XP}\nClassic Wins: {ClassicWins}```");
+                    }
+                    if (counter >= 32)
+                        break;
+                }
+                await ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription(ex.Message)
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
+
+        [ComponentInteraction("SquadHome:*:*")]
+        public async Task SquadHomePage(string userID, string SquadName)
+        {
+            try
+            {
+                await DeferAsync();
+                if (userID != Context.User.Id.ToString())
+                {
+                    await FollowupAsync("This is not your page to interact with!", ephemeral: true);
+                    return;
+                }
+                var squadData = await db.GetSquadByNameAsync(SquadName);
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Viewing Squad Stats: {SquadName}")
+                    .AddField("Overall Squad Wins", $"```css\nDeath Match: {squadData.DeathMatch}\nBattle Royale: {squadData.BattleRoyale}\nMissile Launch: {squadData.MissileLaunch}\nPackage Drop: {squadData.PackageDrop}\nVehicle Escort: {squadData.VehicleEscort}\nZombie Battle Royale: {squadData.ZombieBR}\nCapture Point: {squadData.CapturePoint}```")
+                    .WithColor(Color.Green);
+                await ModifyOriginalResponseAsync(x => x.Embed = embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription(ex.Message)
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
     }
 }

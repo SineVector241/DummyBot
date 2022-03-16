@@ -132,9 +132,36 @@ namespace DummyBot.Core
         {
             HtmlDocument document = new HtmlDocument();
             document.LoadHtml(GetRequest($"https://stats.warbrokers.io/squads/{squadname}"));
-            var TopTenData = document.DocumentNode.SelectSingleNode("//div[@class='squad-top-ten-weapons-grid']");
+            var TopTenData = document.DocumentNode.SelectNodes("//div[@class='squad-top-ten-wrapper']");
             var SquadMembers = document.DocumentNode.SelectNodes("//div[@class='squad-player-grid']");
             JObject json = new JObject();
+
+            string DeathMatch = "";
+            string BattleRoyale = "";
+            string MissileLaunch = "";
+            string PackageDrop = "";
+            string VehicleEscort = "";
+            string ZombieBR = "";
+            string CapturePoint = "";
+
+            foreach (var data in TopTenData)
+            {
+                if (data.ChildNodes[1].InnerText == "Death Match")
+                    DeathMatch = data.ChildNodes[3].InnerText;
+                if (data.ChildNodes[1].InnerText == "Battle Royale")
+                    BattleRoyale = data.ChildNodes[3].InnerText;
+                if (data.ChildNodes[1].InnerText == "Missile Launch")
+                    MissileLaunch = data.ChildNodes[3].InnerText;
+                if (data.ChildNodes[1].InnerText == "Package Drop")
+                    PackageDrop = data.ChildNodes[3].InnerText;
+                if (data.ChildNodes[1].InnerText == "Vehicle Escort")
+                    VehicleEscort = data.ChildNodes[3].InnerText;
+                if (data.ChildNodes[1].InnerText == "Zombie BR")
+                    ZombieBR = data.ChildNodes[3].InnerText;
+                if (data.ChildNodes[1].InnerText == "Capture Point")
+                    CapturePoint = data.ChildNodes[3].InnerText;
+            }
+
             foreach(var SquadMember in SquadMembers)
             {
                 json[SquadMember.ChildNodes[1].InnerText] = new JObject();
@@ -145,14 +172,15 @@ namespace DummyBot.Core
             var Squad = new Database.Squad()
             {
                 Name = squadname,
-                DeathMatch = TopTenData.ChildNodes[1].ChildNodes[3].InnerText,
-                BattleRoyale = TopTenData.ChildNodes[3].ChildNodes[3].InnerText,
-                MissileLaunch = TopTenData.ChildNodes[5].ChildNodes[3].InnerText,
-                PackageDrop = TopTenData.ChildNodes[7].ChildNodes[3].InnerText,
-                VehicleEscort = TopTenData.ChildNodes[9].ChildNodes[3].InnerText,
-                ZombieBR = TopTenData.ChildNodes[11].ChildNodes[3].InnerText,
-                CapturePoint = TopTenData.ChildNodes[13].ChildNodes[3].InnerText,
-                Members = json
+                DeathMatch = DeathMatch,
+                BattleRoyale = BattleRoyale,
+                MissileLaunch = MissileLaunch,
+                PackageDrop = PackageDrop,
+                VehicleEscort = VehicleEscort,
+                ZombieBR = ZombieBR,
+                CapturePoint = CapturePoint,
+                Members = json,
+                LastUpdate = DateTime.Now
             };
             return Squad;
         }

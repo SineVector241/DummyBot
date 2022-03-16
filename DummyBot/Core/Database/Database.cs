@@ -32,6 +32,7 @@ namespace DummyBot.Core.Database
         public string ZombieBR { get; set; }
         public string CapturePoint { get; set; }
         public JObject Members { get; set; }
+        public DateTime LastUpdate { get; set; }
     }
     public class Database
     {
@@ -45,7 +46,7 @@ namespace DummyBot.Core.Database
         private async Task CreateTable()
         {
             string query = "CREATE TABLE IF NOT EXISTS Users (ID varchar(18), IsSteam boolean, WBID string, WBName string, Level string, Kills string, Deaths string, XP string, KD string, KPM string, WeaponKills string, VehicleKills string, DamageDealt string, HeadShots string)";
-            string query2 = "CREATE TABLE IF NOT EXISTS Squads (Name string, DeathMatch string, BattleRoyale string, MissileLaunch string, PackageDrop string, VehicleEscort string, ZombieBR string, CapturePoint string, Members string)";
+            string query2 = "CREATE TABLE IF NOT EXISTS Squads (Name string, DeathMatch string, BattleRoyale string, MissileLaunch string, PackageDrop string, VehicleEscort string, ZombieBR string, CapturePoint string, Members string, LastUpdate string)";
             SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
             SQLiteCommand cmd2 = new SQLiteCommand(query2, db.MyConnection);
             cmd.Prepare();
@@ -147,7 +148,7 @@ namespace DummyBot.Core.Database
 
         public async Task CreateSquadAsync(Squad squad)
         {
-            string query = "INSERT INTO Squads (Name, DeathMatch, BattleRoyale, MissileLaunch, PackageDrop, VehicleEscort, ZombieBR, CapturePoint, Members) VALUES (@Name, @DeathMatch, @BattleRoyale, @MissileLaunch, @PackageDrop, @VehicleEscort, @ZombieBR, @CapturePoint, @Members)";
+            string query = "INSERT INTO Squads (Name, DeathMatch, BattleRoyale, MissileLaunch, PackageDrop, VehicleEscort, ZombieBR, CapturePoint, Members, LastUpdate) VALUES (@Name, @DeathMatch, @BattleRoyale, @MissileLaunch, @PackageDrop, @VehicleEscort, @ZombieBR, @CapturePoint, @Members, @LastUpdate)";
             SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
             cmd.Parameters.AddWithValue("@Name", squad.Name);
             cmd.Parameters.AddWithValue("@DeathMatch", squad.DeathMatch);
@@ -158,6 +159,7 @@ namespace DummyBot.Core.Database
             cmd.Parameters.AddWithValue("@ZombieBR", squad.ZombieBR);
             cmd.Parameters.AddWithValue("@CapturePoint", squad.CapturePoint);
             cmd.Parameters.AddWithValue("@Members", squad.Members.ToString().Replace(" ", "").Replace(@"\n", ""));
+            cmd.Parameters.AddWithValue("@LastUpdate", squad.LastUpdate.ToString());
             cmd.Prepare();
             db.OpenConnection();
             cmd.ExecuteNonQuery();
@@ -180,7 +182,7 @@ namespace DummyBot.Core.Database
         }
         public async Task UpdateSquadAsync(Squad squad)
         {
-            string query = $"UPDATE Users SET DeathMatch = \"{squad.DeathMatch}\", BattleRoyale = \"{squad.BattleRoyale}\", MissileLaunch = \"{squad.MissileLaunch}\", PackageDrop = \"{squad.PackageDrop}\", VehicleEscort = \"{squad.VehicleEscort}\", ZombieBR = \"{squad.ZombieBR}\", CapturePoint = \"{squad.CapturePoint}\", Members = \"{squad.Members}\" WHERE Name = \"{squad.Name}\"";
+            string query = @$"UPDATE Squads SET DeathMatch = '{squad.DeathMatch}', MissileLaunch = '{squad.MissileLaunch}', PackageDrop = '{squad.PackageDrop}', VehicleEscort = '{squad.VehicleEscort}', ZombieBR = '{squad.ZombieBR}', CapturePoint = '{squad.CapturePoint}', Members = '{squad.Members.ToString().Replace(" ", "").Replace(@"\n", "")}', LastUpdate = '{squad.LastUpdate}' WHERE Name = '{squad.Name}'";
             SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
             cmd.Prepare();
             db.OpenConnection();
@@ -207,6 +209,7 @@ namespace DummyBot.Core.Database
                     squad.ZombieBR = result["ZombieBR"].ToString();
                     squad.CapturePoint = result["CapturePoint"].ToString();
                     squad.Members = JObject.Parse(result["Members"].ToString());
+                    squad.LastUpdate = DateTime.Parse(result["LastUpdate"].ToString());
                 }
             db.CloseConnection();
             await cmd.DisposeAsync();
