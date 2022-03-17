@@ -69,5 +69,31 @@ namespace DummyBot.Core.SlashCommands
                 await RespondAsync(embed: embed.Build());
             }
         }
+
+        [SlashCommand("cooldowns", "Check your cooldowns")]
+        public async Task Cooldowns()
+        {
+            try
+            {
+                await DeferAsync();
+                int c1 = utils.CheckCooldown(Context.User, "SearchPlayer").Seconds;
+                int c2 = utils.CheckCooldown(Context.User, "Sync").Seconds;
+                var embed = new EmbedBuilder()
+                    .WithTitle($"{Context.User.Username}'s cooldowns")
+                    .AddField("Search Player", $"{ (c1 <= 0 ? "Ready" : c1 + " Seconds")}")
+                    .AddField("Sync Stats", $"{(c2 <= 0 ? "Ready" : c2 + " Seconds")}")
+                    .WithColor(Color.Orange);
+                await FollowupAsync(embed: embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription($"Error Message: {ex.Message}")
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
     }
 }

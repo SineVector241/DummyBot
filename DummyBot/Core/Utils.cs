@@ -257,7 +257,7 @@ namespace DummyBot.Core
             var tempUser = list.FirstOrDefault(x => x.UserID == user.Id);
             if (tempUser.UserID != 0)
             {
-                return new CooldownResponse() { Seconds = tempUser.CooldownSeconds - (int)(DateTime.Now - tempUser.DateTime).TotalSeconds, CooledDown = tempUser.CooldownSeconds - (int)(DateTime.Now - tempUser.DateTime).TotalSeconds == 0 ? true : false };
+                return new CooldownResponse() { Seconds = tempUser.CooldownSeconds - (int)(DateTime.Now - tempUser.DateTime).TotalSeconds, CooledDown = tempUser.CooldownSeconds - (int)(DateTime.Now - tempUser.DateTime).TotalSeconds <= 0 ? true : false };
             }
             return new CooldownResponse() { Seconds = 0, CooledDown = true };
         }
