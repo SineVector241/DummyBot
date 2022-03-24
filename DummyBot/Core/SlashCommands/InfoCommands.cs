@@ -95,5 +95,63 @@ namespace DummyBot.Core.SlashCommands
                 await FollowupAsync(embed: embed.Build());
             }
         }
+
+        [SlashCommand("map", "display map information")]
+        public async Task Map([Summary(description:"Name of the map. Case Sensitive!!")]string name)
+        {
+            try
+            {
+                await DeferAsync();
+                if(File.Exists($"{Config._MapPicturesFolder}/{name.Replace(" ","_")}.jpg"))
+                {
+                    var embed = new EmbedBuilder()
+                        .WithTitle($"Map Info: {name}")
+                        .WithImageUrl($"attachment://{name.Replace(" ", "_")}.jpg")
+                        .WithColor(Color.Orange);
+                    await FollowupWithFileAsync($"{Config._MapPicturesFolder}/{name.Replace(" ", "_")}.jpg", embed: embed.Build());
+                }
+                else
+                {
+                    await FollowupAsync("That map does not exist! Make sure you have typed the map name correctly. Check **/info maps** for a full list of the available maps.\nThe map name searcher is CASE SENSITIVE");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription($"Error Message: {ex.Message}")
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
+
+        [SlashCommand("maps", "display all available maps")]
+        public async Task Maps()
+        {
+            try
+            {
+                string files = "";
+                foreach(var file in Directory.EnumerateFiles(Config._MapPicturesFolder, "*.jpg"))
+                {
+                    files += $"**{Path.GetFileName(file).Replace("_", " ").Replace(".jpg", "")}**\n";
+                }
+                await DeferAsync();
+                var embed = new EmbedBuilder()
+                    .WithTitle("Available Maps")
+                    .WithDescription(files)
+                    .WithColor(Color.Blue);
+                await FollowupAsync(embed: embed.Build());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription($"Error Message: {ex.Message}")
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
     }
 }

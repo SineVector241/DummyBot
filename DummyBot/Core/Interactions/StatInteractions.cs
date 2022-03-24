@@ -38,7 +38,7 @@ namespace DummyBot.Core.Interactions
                     await FollowupAsync($"This is not your stats page!!", ephemeral: true);
                     return;
                 }
-                var cooldown = utils.Cooldown(Context.User, "Sync", 60 * 60 * 6);
+                var cooldown = utils.Cooldown(Context.User, "Sync", 60 * 60 * 1);
                 if (!cooldown.CooledDown)
                 {
                     await FollowupAsync($"You are on cooldown for this! Try again in {cooldown.Seconds} seconds", ephemeral: true);

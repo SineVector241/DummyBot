@@ -6,7 +6,7 @@ namespace DummyBot
     {
         private const string _configFolder = "Resources";
         private const string _configFile = "config.json";
-        private const string _MapPicturesFolder = "Resources/MapPictures";
+        public const string _MapPicturesFolder = "Resources/MapPictures";
         private const string _AmmoPicturesFolder = "Resources/AmmunitionPictures";
         private const string _VehiclePicturesFolder = "Resources/VehiclePictures";
         public static BotConfig BotConfiguration;

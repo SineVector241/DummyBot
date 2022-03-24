@@ -25,7 +25,7 @@ namespace DummyBot.Core.SlashCommands
             try
             {
                 await DeferAsync();
-                var cooldown = utils.Cooldown(Context.User, "SearchPlayer", 60 * 60 * 1);
+                var cooldown = utils.Cooldown(Context.User, "SearchPlayer", 20);
                 if (!cooldown.CooledDown)
                 {
                     await FollowupAsync($"You are on cooldown for this command. Try again in {cooldown.Seconds} seconds");
@@ -144,7 +144,7 @@ namespace DummyBot.Core.SlashCommands
                 {
                     await db.CreateUserAsync(data);
                 }
-                utils.Cooldown(Context.User, "Sync", 60 * 60 * 6);
+                utils.Cooldown(Context.User, "Sync", 60 * 60 * 1);
                 await msg.ModifyAsync(x => { x.Content = "You have linked your account. You can now use **/stats me**"; x.Components = new ComponentBuilder().Build(); });
             }
             catch (Exception ex)
