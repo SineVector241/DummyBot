@@ -37,6 +37,11 @@ namespace DummyBot
                 var ctx = new SocketInteractionContext<SocketMessageComponent>(Client, (SocketMessageComponent)interaction);
                 await Interactions.ExecuteCommandAsync(ctx, ServiceProvider);
             }
+            else if (interaction is SocketAutocompleteInteraction)
+            {
+                var ctx = new SocketInteractionContext(Client, (SocketAutocompleteInteraction)interaction);
+                await Interactions.ExecuteCommandAsync(ctx, ServiceProvider);
+            }
         }
 
         private async Task Ready()

@@ -216,5 +216,16 @@ namespace DummyBot.Core.Database
             await result.DisposeAsync();
             return squad;
         }
+
+        public async Task DeleteSquadAsync(string name)
+        {
+            string query = $"DELETE FROM Squads WHERE Name = \"{name}\"";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            cmd.ExecuteNonQuery();
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+        }
     }
 }

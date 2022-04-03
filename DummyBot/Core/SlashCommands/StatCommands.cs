@@ -209,7 +209,7 @@ namespace DummyBot.Core.SlashCommands
                     await db.CreateSquadAsync(data);
                 }
                 var squadData = await db.GetSquadByNameAsync(SquadName);
-                if(squadData.LastUpdate.AddDays(1) <= DateTime.Now)
+                if (squadData.LastUpdate.AddDays(1) <= DateTime.Now)
                 {
                     var data = utils.SquadStatsData(SquadName);
                     await db.UpdateSquadAsync(data);
@@ -229,6 +229,19 @@ namespace DummyBot.Core.SlashCommands
             }
             catch (Exception ex)
             {
+                try
+                {
+                    if (!utils.CheckSquadName(SquadName))
+                    {
+                        await FollowupAsync("That squad name does not exist");
+                        await db.DeleteSquadAsync(SquadName);
+                        return;
+                    }
+                }
+                catch (Exception ex2)
+                {
+                    Console.WriteLine(ex2);
+                }
                 Console.WriteLine(ex);
                 var embed = new EmbedBuilder()
                     .WithTitle("An error has occured")

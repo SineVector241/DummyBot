@@ -97,18 +97,18 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("map", "display map information")]
-        public async Task Map([Summary(description:"Name of the map. Case Sensitive!!")]string name)
+        public async Task Map([Summary(description: "Name of the map"), Autocomplete(typeof(MapAutoCompleteHandler))] string MapName)
         {
             try
             {
                 await DeferAsync();
-                if(File.Exists($"{Config._MapPicturesFolder}/{name.Replace(" ","_")}.jpg"))
+                if (File.Exists($"{Config._MapPicturesFolder}/{MapName.Replace(" ", "_")}.jpg"))
                 {
                     var embed = new EmbedBuilder()
-                        .WithTitle($"Map Info: {name}")
-                        .WithImageUrl($"attachment://{name.Replace(" ", "_")}.jpg")
+                        .WithTitle($"Map: {MapName}")
+                        .WithImageUrl($"attachment://{MapName.Replace(" ", "_")}.jpg")
                         .WithColor(Color.Orange);
-                    await FollowupWithFileAsync($"{Config._MapPicturesFolder}/{name.Replace(" ", "_")}.jpg", embed: embed.Build());
+                    await FollowupWithFileAsync($"{Config._MapPicturesFolder}/{MapName.Replace(" ", "_")}.jpg", embed: embed.Build());
                 }
                 else
                 {
@@ -126,21 +126,34 @@ namespace DummyBot.Core.SlashCommands
             }
         }
 
-        [SlashCommand("maps", "display all available maps")]
-        public async Task Maps()
+        [SlashCommand("servers","Shows all servers the bot is in")]
+        public async Task Test()
         {
             try
             {
-                string files = "";
-                foreach(var file in Directory.EnumerateFiles(Config._MapPicturesFolder, "*.jpg"))
-                {
-                    files += $"**{Path.GetFileName(file).Replace("_", " ").Replace(".jpg", "")}**\n";
-                }
                 await DeferAsync();
+                if (Context.User.Id != 550912080627236874)
+                {
+                    await FollowupAsync("Only the owner of dummybot can use this command!");
+                    return;
+                }
+                var servers = Context.Client.Guilds;
                 var embed = new EmbedBuilder()
-                    .WithTitle("Available Maps")
-                    .WithDescription(files)
-                    .WithColor(Color.Blue);
+                    .WithTitle("Servers:")
+                    .WithColor(Color.LightOrange);
+                foreach(var server in servers)
+                {
+                    var user = await server.GetUsersAsync().FirstAsync();
+                    var usernames = "";
+                    int counter = 0;
+                    foreach(string username in user.Select(x => x.Username))
+                    {
+                        usernames += username + "\n";
+                        if(counter++ == 5)
+                            break;
+                    }
+                    embed.AddField(server.Name, usernames);
+                }
                 await FollowupAsync(embed: embed.Build());
             }
             catch (Exception ex)
@@ -152,6 +165,35 @@ namespace DummyBot.Core.SlashCommands
                     .WithColor(Color.DarkRed);
                 await FollowupAsync(embed: embed.Build());
             }
+        }
+    }
+
+    public class MapAutoCompleteHandler : AutocompleteHandler
+    {
+        public override async Task<AutocompletionResult> GenerateSuggestionsAsync(IInteractionContext context, IAutocompleteInteraction autocompleteInteraction, IParameterInfo parameter, IServiceProvider services)
+        {
+            var subject = autocompleteInteraction.Data.Current.Value as string; // what the user managed to type into the textbox so far
+            var files = Directory.EnumerateFiles(Config._MapPicturesFolder, "*.jpg");
+            IEnumerable<string> maps = files;
+            List<AutocompleteResult> autocompleteResults = new List<AutocompleteResult>();
+            int counter = 0;
+            foreach (string map in maps)
+            {
+                if (Path.GetFileName(map).Replace("_", " ").Replace(".jpg", "").ToLower().Contains(subject.ToLower()))
+                {
+                    counter++;
+                    autocompleteResults.Add(new AutocompleteResult
+                    {
+                        Name = Path.GetFileName(map).Replace("_", " ").Replace(".jpg", ""), // here's what will appear in the suggestions list
+                        Value = Path.GetFileName(map).Replace("_", " ").Replace(".jpg", "") // here's what will actually go into the slashcommand argument on tapping the suggestion
+                    });
+                    if(counter >= 25)
+                    {
+                        break;
+                    }
+                }
+            }
+            return AutocompletionResult.FromSuccess(autocompleteResults);
         }
     }
 }
