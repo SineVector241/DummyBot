@@ -125,9 +125,10 @@ namespace DummyBot.Core.SlashCommands
                             .AddField("Server Region", serverregion)
                             .WithColor(Color.Red);
                         var builder = new ComponentBuilder()
-                            .WithButton("Accept", $"AcceptWar:{data2.ID},{data.Tag},{Time.ToString().Replace(" ","_")}", ButtonStyle.Success)
+                            .WithButton("Accept", $"AcceptWar:{data2.ID},{Time.ToString().Replace(" ","_")},{serverregion}", ButtonStyle.Success)
                             .WithButton("Deny", $"DenyWar:{data2.ID}");
-                        await FollowupAsync(embed: embed.Build(), components: builder.Build());
+                        await channel.SendMessageAsync(embed: embed.Build(), components: builder.Build());
+                        await FollowupAsync("Successfully sent request");
                     }
                     catch
                     {
@@ -140,6 +141,77 @@ namespace DummyBot.Core.SlashCommands
                     await FollowupAsync("Not a valid time format");
                     return;
                 }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription($"Error Message: {ex.Message}")
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
+    }
+
+    public class SquadInteractions : InteractionModuleBase<SocketInteractionContext<SocketMessageComponent>>
+    {
+        Database.Database db = new Database.Database();
+        [ComponentInteraction("AcceptWar:*,*,*")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task AcceptSquadWar(string guildID, string Time, string ServerRegion)
+        {
+            try
+            {
+                await DeferAsync();
+                var rGuild = Context.Client.GetGuild((ulong)Convert.ToInt64(guildID));
+                var rGuildData = await db.GetSquadServerByIdAsync((ulong)Convert.ToInt64(guildID));
+                var sGuildData = await db.GetSquadServerByIdAsync(Context.Guild.Id);
+                var channel = Context.Client.GetGuild(rGuildData.ID).GetTextChannel(rGuildData.NotifyChannel);
+                DateTime ParsedTime = DateTime.Parse(Time.Replace("_"," "));
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Squad war from **{sGuildData.Tag}** has been accepted!")
+                    .AddField("Time", TimeZoneInfo.ConvertTimeFromUtc(ParsedTime, rGuildData.TimeZone))
+                    .AddField("Server Region", ServerRegion)
+                    .WithColor(Color.Green);
+                var embed2 = EmbedBuilderExtensions.ToEmbedBuilder(Context.Interaction.Message.Embeds.First())
+                    .WithTitle($"Accepted squad war: {rGuildData.Tag}")
+                    .WithColor(Color.Green);
+                await channel.SendMessageAsync(embed: embed.Build());
+                await FollowupAsync("Accepted Squad War", ephemeral: true);
+                await ModifyOriginalResponseAsync(x => { x.Embed = embed2.Build(); x.Components = new ComponentBuilder().Build(); });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+                var embed = new EmbedBuilder()
+                    .WithTitle("An error has occured")
+                    .WithDescription($"Error Message: {ex.Message}")
+                    .WithColor(Color.DarkRed);
+                await FollowupAsync(embed: embed.Build());
+            }
+        }
+
+        [ComponentInteraction("DenyWar:*")]
+        [RequireUserPermission(GuildPermission.Administrator)]
+        public async Task DenySquadWar(string guildID)
+        {
+            try
+            {
+                await DeferAsync();
+                var rGuild = Context.Client.GetGuild((ulong)Convert.ToInt64(guildID));
+                var rGuildData = await db.GetSquadServerByIdAsync((ulong)Convert.ToInt64(guildID));
+                var sGuildData = await db.GetSquadServerByIdAsync(Context.Guild.Id);
+                var channel = Context.Client.GetGuild(rGuildData.ID).GetTextChannel(rGuildData.NotifyChannel);
+                var embed = new EmbedBuilder()
+                    .WithTitle($"Squad war request from **{sGuildData.Tag}** has been denied!")
+                    .WithColor(Color.Red);
+                var embed2 = EmbedBuilderExtensions.ToEmbedBuilder(Context.Interaction.Message.Embeds.First())
+                    .WithTitle($"Denied squad war: {rGuildData.Tag}")
+                    .WithColor(Color.Red);
+                await channel.SendMessageAsync(embed: embed.Build());
+                await FollowupAsync("Denied Squad War", ephemeral: true);
+                await ModifyOriginalResponseAsync(x => { x.Embed = embed2.Build(); x.Components = new ComponentBuilder().Build(); });
             }
             catch (Exception ex)
             {
