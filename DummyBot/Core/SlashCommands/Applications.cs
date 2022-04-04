@@ -56,6 +56,7 @@ namespace DummyBot.Core.SlashCommands
 
         [SlashCommand("squad", "Apply for your server to be verified as a squad server")]
         [RequireContext(ContextType.Guild)]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task SquadApply([Summary(description:"Default timezone of your squad"),Autocomplete(typeof(AutoCompleteTimezoneHandler))] string timezone)
         {
             try

@@ -10,6 +10,7 @@ namespace DummyBot.Core.SlashCommands
     {
         Database.Database db = new Database.Database();
         [SlashCommand("setnotifychannel", "Sets the notification channel to recieve incoming war requests")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task SetNotifyChannel(SocketTextChannel channel)
         {
             try
@@ -17,7 +18,7 @@ namespace DummyBot.Core.SlashCommands
                 await DeferAsync();
                 if (!await db.HasSquadServerAsync(Context.Guild.Id))
                 {
-                    await RespondAsync("This server is not registered as a squad server!");
+                    await FollowupAsync("This server is not registered as a squad server!");
                     return;
                 }
                 var data = await db.GetSquadServerByIdAsync(Context.Guild.Id);
@@ -37,6 +38,7 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("settimezone", "Sets the notification channel to recieve incoming war requests")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task SetTimeZone([Summary(description: "Default timezone of your squad"), Autocomplete(typeof(AutoCompleteTimezoneHandler))] string timezone)
         {
             try
@@ -44,7 +46,7 @@ namespace DummyBot.Core.SlashCommands
                 await DeferAsync();
                 if (!await db.HasSquadServerAsync(Context.Guild.Id))
                 {
-                    await RespondAsync("This server is not registered as a squad server!");
+                    await FollowupAsync("This server is not registered as a squad server!");
                     return;
                 }
                 var data = await db.GetSquadServerByIdAsync(Context.Guild.Id);
@@ -64,6 +66,7 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("setwarstatus", "Sets the notification channel to recieve incoming war requests")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task SetWarStatus([Choice("Available For War", "available"), Choice("Unavailable for war", "unavailable")] string war)
         {
             try
@@ -71,7 +74,7 @@ namespace DummyBot.Core.SlashCommands
                 await DeferAsync();
                 if (!await db.HasSquadServerAsync(Context.Guild.Id))
                 {
-                    await RespondAsync("This server is not registered as a squad server!");
+                    await FollowupAsync("This server is not registered as a squad server!");
                     return;
                 }
                 var data = await db.GetSquadServerByIdAsync(Context.Guild.Id);
@@ -91,6 +94,7 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("declarewar", "Sets the notification channel to recieve incoming war requests")]
+        [RequireUserPermission(GuildPermission.Administrator)]
         public async Task DeclareWar([Summary(description: "Squad tag")] string squadtag, [Summary(name:"DateTime",description:"Bases time region off of your squad's default timezone. Format: dd/mm/yyyy hh:mm AM/PM")] string time, string serverregion)
         {
             try
@@ -109,9 +113,9 @@ namespace DummyBot.Core.SlashCommands
                 try
                 {
                     DateTime ParsedTime = DateTime.Parse(time);
-                    var Time = TimeZoneInfo.ConvertTimeToUtc(ParsedTime);
                     var data = await db.GetSquadServerByTagAsync(squadtag);
                     var data2 = await db.GetSquadServerByIdAsync(Context.Guild.Id);
+                    var Time = TimeZoneInfo.ConvertTimeToUtc(ParsedTime, data2.TimeZone);
                     try
                     {
                         var channel = Context.Client.GetGuild(data.ID).GetTextChannel(data.NotifyChannel);
@@ -120,11 +124,15 @@ namespace DummyBot.Core.SlashCommands
                             .AddField("Time", TimeZoneInfo.ConvertTimeFromUtc(Time, data.TimeZone))
                             .AddField("Server Region", serverregion)
                             .WithColor(Color.Red);
-                        await FollowupAsync(embed: embed.Build());
+                        var builder = new ComponentBuilder()
+                            .WithButton("Accept", $"AcceptWar:{data2.ID},{data.Tag},{Time.ToString().Replace(" ","_")}", ButtonStyle.Success)
+                            .WithButton("Deny", $"DenyWar:{data2.ID}");
+                        await FollowupAsync(embed: embed.Build(), components: builder.Build());
                     }
                     catch
                     {
-
+                        await FollowupAsync("I could not send the request to the squad. Please notify the squad that their notify channel is either not setup properly or that I do not have permissions to notify");
+                        return;
                     }
                 }
                 catch
