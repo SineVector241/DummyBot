@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 namespace DummyBot.Core.SlashCommands
 {
     [Group("fun", "Fun commands")]
-    public class FunCommands : InteractionModuleBase<SocketInteractionContext<SocketSlashCommand>>
+    public class FunCommands : InteractionModuleBase<SocketInteractionContext<SocketInteraction>>
     {
         Utils utils = new Utils();
 

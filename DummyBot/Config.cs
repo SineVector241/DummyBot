@@ -58,6 +58,8 @@ namespace DummyBot
         public struct BotConfig
         {
             public string Token { get; set; }
+            public ulong Server { get; set; }
+            public ulong ApplicationChannel { get; set; }
         }
     }
 }

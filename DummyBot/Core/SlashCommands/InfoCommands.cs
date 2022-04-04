@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 namespace DummyBot.Core.SlashCommands
 {
     [Group("info", "Information commands")]
-    public class InfoCommands : InteractionModuleBase<SocketInteractionContext<SocketSlashCommand>>
+    public class InfoCommands : InteractionModuleBase<SocketInteractionContext<SocketInteraction>>
     {
         private Utils utils = new Utils();
 
@@ -127,16 +127,12 @@ namespace DummyBot.Core.SlashCommands
         }
 
         [SlashCommand("servers","Shows all servers the bot is in")]
-        public async Task Test()
+        [RequireOwner]
+        public async Task Servers()
         {
             try
             {
                 await DeferAsync();
-                if (Context.User.Id != 550912080627236874)
-                {
-                    await FollowupAsync("Only the owner of dummybot can use this command!");
-                    return;
-                }
                 var servers = Context.Client.Guilds;
                 var embed = new EmbedBuilder()
                     .WithTitle("Servers:")

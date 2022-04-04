@@ -11,7 +11,7 @@ using Fergun.Interactive;
 namespace DummyBot.Core.SlashCommands
 {
     [Group("stats", "Shows WB stats")]
-    public class StatCommands : InteractionModuleBase<SocketInteractionContext<SocketSlashCommand>>
+    public class StatCommands : InteractionModuleBase<SocketInteractionContext<SocketInteraction>>
     {
         private readonly HttpClient client = new HttpClient();
         private Utils utils = new Utils();

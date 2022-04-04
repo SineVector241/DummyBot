@@ -26,6 +26,8 @@ namespace DummyBot.Core
         private static List<UserCooldown> SearchPlayer = new List<UserCooldown>();
         private static List<UserCooldown> Sync = new List<UserCooldown>();
         private static List<UserCooldown> Link = new List<UserCooldown>();
+        private static List<UserCooldown> ApplySteam = new List<UserCooldown>();
+        private static List<UserCooldown> ApplySquad = new List<UserCooldown>();
 
         public string GetRequest(string url)
         {
@@ -212,6 +214,14 @@ namespace DummyBot.Core
                 case "Link":
                     list = Link;
                     break;
+                case "ApplySteam":
+                    list = ApplySteam;
+                    break;
+                case "ApplySquad":
+                    list = ApplySquad;
+                    break;
+                default:
+                    throw new Exception($"Invalid cooldown type: {type}");
             }
             UserCooldown tempUser = list.FirstOrDefault(x => x.UserID == user.Id);
             if (tempUser.UserID != 0)
@@ -253,6 +263,14 @@ namespace DummyBot.Core
                 case "Link":
                     list = Link;
                     break;
+                case "ApplySteam":
+                    list = ApplySteam;
+                    break;
+                case "ApplySquad":
+                    list = ApplySquad;
+                    break;
+                default:
+                    throw new Exception($"Invalid cooldown type: {type}");
             }
             var tempUser = list.FirstOrDefault(x => x.UserID == user.Id);
             if (tempUser.UserID != 0)

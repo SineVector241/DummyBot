@@ -27,20 +27,22 @@ namespace DummyBot
 
         private async Task InteractionCreated(SocketInteraction interaction)
         {
-            if (interaction is SocketSlashCommand)
+            try
             {
-                var ctx = new SocketInteractionContext<SocketSlashCommand>(Client, (SocketSlashCommand)interaction);
-                await Interactions.ExecuteCommandAsync(ctx, ServiceProvider);
+                if (interaction is SocketMessageComponent)
+                {
+                    var ctx = new SocketInteractionContext<SocketMessageComponent>(Client, (SocketMessageComponent)interaction);
+                    await Interactions.ExecuteCommandAsync(ctx, ServiceProvider);
+                }
+                else
+                {
+                    var ctx = new SocketInteractionContext<SocketInteraction>(Client, interaction);
+                    await Interactions.ExecuteCommandAsync(ctx, ServiceProvider);
+                }
             }
-            else if (interaction is SocketMessageComponent)
+            catch (Exception ex)
             {
-                var ctx = new SocketInteractionContext<SocketMessageComponent>(Client, (SocketMessageComponent)interaction);
-                await Interactions.ExecuteCommandAsync(ctx, ServiceProvider);
-            }
-            else if (interaction is SocketAutocompleteInteraction)
-            {
-                var ctx = new SocketInteractionContext(Client, (SocketAutocompleteInteraction)interaction);
-                await Interactions.ExecuteCommandAsync(ctx, ServiceProvider);
+                Console.WriteLine(ex);
             }
         }
 

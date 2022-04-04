@@ -34,6 +34,14 @@ namespace DummyBot.Core.Database
         public JObject Members { get; set; }
         public DateTime LastUpdate { get; set; }
     }
+    public struct SquadServer
+    {
+        public ulong ID { get; set; }
+        public ulong NotifyChannel { get; set; }
+        public TimeZoneInfo TimeZone { get; set; }
+        public bool WarStatus { get; set; }
+        public string Tag { get; set; }
+    }
     public class Database
     {
         SQLiteDBContext db = new SQLiteDBContext();
@@ -47,15 +55,20 @@ namespace DummyBot.Core.Database
         {
             string query = "CREATE TABLE IF NOT EXISTS Users (ID varchar(18), IsSteam boolean, WBID string, WBName string, Level string, Kills string, Deaths string, XP string, KD string, KPM string, WeaponKills string, VehicleKills string, DamageDealt string, HeadShots string)";
             string query2 = "CREATE TABLE IF NOT EXISTS Squads (Name string, DeathMatch string, BattleRoyale string, MissileLaunch string, PackageDrop string, VehicleEscort string, ZombieBR string, CapturePoint string, Members string, LastUpdate string)";
+            string query3 = "CREATE TABLE IF NOT EXISTS SquadServers (ID varchar(18), NotifyChannel varchar(18), TimeZone string, WarStatus boolean, Tag string)";
             SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
             SQLiteCommand cmd2 = new SQLiteCommand(query2, db.MyConnection);
+            SQLiteCommand cmd3 = new SQLiteCommand(query3, db.MyConnection);
             cmd.Prepare();
             cmd2.Prepare();
             db.OpenConnection();
             cmd.ExecuteNonQuery();
             cmd2.ExecuteNonQuery();
+            cmd3.ExecuteNonQuery();
             db.CloseConnection();
             await cmd.DisposeAsync();
+            await cmd2.DisposeAsync();
+            await cmd3.DisposeAsync();
         }
         public async Task CreateUserAsync(User user)
         {
@@ -216,7 +229,6 @@ namespace DummyBot.Core.Database
             await result.DisposeAsync();
             return squad;
         }
-
         public async Task DeleteSquadAsync(string name)
         {
             string query = $"DELETE FROM Squads WHERE Name = \"{name}\"";
@@ -226,6 +238,104 @@ namespace DummyBot.Core.Database
             cmd.ExecuteNonQuery();
             db.CloseConnection();
             await cmd.DisposeAsync();
+        }
+
+        public async Task CreateSquadServerAsync(SquadServer server)
+        {
+            string query = "INSERT INTO SquadServers (ID, NotifyChannel, TimeZone, WarStatus, Tag) VALUES (@ID, @NotifyChannel, @TimeZone, @WarStatus, @Tag)";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Parameters.AddWithValue("@ID", server.ID);
+            cmd.Parameters.AddWithValue("@NotifyChannel", server.NotifyChannel);
+            cmd.Parameters.AddWithValue("@TimeZone", server.TimeZone.StandardName);
+            cmd.Parameters.AddWithValue("@WarStatus", server.WarStatus);
+            cmd.Parameters.AddWithValue("@Tag", server.Tag);
+            cmd.Prepare();
+            db.OpenConnection();
+            cmd.ExecuteNonQuery();
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+        }
+        public async Task<bool> HasSquadServerAsync(ulong id)
+        {
+            string query = $"SELECT * FROM SquadServers WHERE ID = {id}";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            SQLiteDataReader result = cmd.ExecuteReader();
+            bool Exists = false;
+            if (result.HasRows) Exists = true;
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+            await result.DisposeAsync();
+            return Exists;
+        }
+
+        public async Task<bool> HasSquadServerByTagAsync(string tag)
+        {
+            string query = $"SELECT * FROM SquadServers WHERE Tag = \"{tag}\"";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            SQLiteDataReader result = cmd.ExecuteReader();
+            bool Exists = false;
+            if (result.HasRows) Exists = true;
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+            await result.DisposeAsync();
+            return Exists;
+        }
+        public async Task UpdateSquadServerAsync(SquadServer server)
+        {
+            string query = $"UPDATE SquadServers SET NotifyChannel = {server.NotifyChannel}, TimeZone = \"{server.TimeZone.StandardName}\", WarStatus = {server.WarStatus}, Tag = \"{server.Tag}\" WHERE ID = {server.ID}";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            cmd.ExecuteNonQuery();
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+        }
+        public async Task<SquadServer> GetSquadServerByIdAsync(ulong id)
+        {
+            string query = $"SELECT * FROM SquadServers WHERE ID = {id}";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            SQLiteDataReader result = cmd.ExecuteReader();
+            SquadServer squadServer = new SquadServer();
+            if(result.HasRows) while(result.Read())
+                {
+                    squadServer.ID = id;
+                    squadServer.NotifyChannel = (ulong)Convert.ToInt64(result["NotifyChannel"]);
+                    squadServer.TimeZone = TimeZoneInfo.FindSystemTimeZoneById(result["TimeZone"].ToString());
+                    squadServer.WarStatus = (bool)result["WarStatus"];
+                    squadServer.Tag = result["Tag"].ToString();
+                }
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+            await result.DisposeAsync();
+            return squadServer;
+        }
+
+        public async Task<SquadServer> GetSquadServerByTagAsync(string tag)
+        {
+            string query = $"SELECT * FROM SquadServers WHERE Tag = \"{tag}\"";
+            SQLiteCommand cmd = new SQLiteCommand(query, db.MyConnection);
+            cmd.Prepare();
+            db.OpenConnection();
+            SQLiteDataReader result = cmd.ExecuteReader();
+            SquadServer squadServer = new SquadServer();
+            if (result.HasRows) while (result.Read())
+                {
+                    squadServer.ID = (ulong)Convert.ToInt64(result["ID"]);
+                    squadServer.NotifyChannel = (ulong)Convert.ToInt64(result["NotifyChannel"]);
+                    squadServer.TimeZone = TimeZoneInfo.FindSystemTimeZoneById(result["TimeZone"].ToString());
+                    squadServer.WarStatus = (bool)result["WarStatus"];
+                    squadServer.Tag = result["Tag"].ToString();
+                }
+            db.CloseConnection();
+            await cmd.DisposeAsync();
+            await result.DisposeAsync();
+            return squadServer;
         }
     }
 }

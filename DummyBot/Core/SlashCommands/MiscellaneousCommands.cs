@@ -4,7 +4,7 @@ using Discord.Interactions;
 
 namespace DummyBot.Core.SlashCommands
 {
-    public class MiscellaneousCommands : InteractionModuleBase<SocketInteractionContext<SocketSlashCommand>>
+    public class MiscellaneousCommands : InteractionModuleBase<SocketInteractionContext<SocketInteraction>>
     {
         [SlashCommand("invite", "Invite the bot to your server")]
         public async Task Invite()
